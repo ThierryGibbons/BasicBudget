@@ -12,6 +12,14 @@ const TransactionsView = () => {
   //   tags prop
   const tags = ["Groceries", "Rent", "Utilities", "Other", "Fun"];
 
+  // key words for tags to look for
+  const keyWords: { [key: string]: string[] } = {
+    Groceries: ["FRESHCHOICE", "WOOLWORTHS", "COUNTDOWN", "PAK'NSAVE"],
+    Rent: ["Rent"],
+    Utilities: ["ELECTRICITY", "WATER", "INTERNET", "PHONE"],
+    Fun: ["LIQUOR", "THE OUTBACK HAMILTON", "BEER", "WINE", "SPIRITS"],
+  };
+
   // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -62,9 +70,11 @@ const TransactionsView = () => {
           const tempTags = newTransactionDataWithCategories.map((row) => {
             // const memo = row[4];
             const payee = row[3];
-            if (payee.includes("LIQUOR")) {
-              return "Fun";
-            } else {
+            // check if payee contains key words
+            for (const tag in keyWords) {
+              if (keyWords[tag].some((word) => payee.includes(word))) {
+                return tag;
+              }
               return "Other";
             }
           });
@@ -72,7 +82,8 @@ const TransactionsView = () => {
           // Add tags to new end column of transactionData
           const newTransactionDataWithTags =
             newTransactionDataWithCategories.map((row, index) => {
-              return [...row, tempTags[index]];
+              const tag = tempTags[index] || ""; // Set tag to an empty string if it's undefined
+              return [...row, tag];
             });
 
           setTransactionData(newTransactionDataWithTags);
@@ -138,8 +149,23 @@ const TransactionsView = () => {
             >
               {row.map((cell, cellIndex) => (
                 <td key={cellIndex}>
-                  {/*  */}
-                  {cell}
+                  {/* if cellIndex = 7 and cell = "other" then highlight the text */}
+                  {cellIndex === 7 && cell === "Other" ? (
+                    <span className="text-error">{cell}</span>
+                  ) : cellIndex === 7 && cell === "Other" ? (
+                    <span className="text-success">{cell}</span>
+                  ) : cellIndex === 7 && cell === "Groceries" ? (
+                    <span className="text-success">{cell}</span>
+                  ) : cellIndex === 7 && cell === "Rent" ? (
+                    <span className="text-success">{cell}</span>
+                  ) : cellIndex === 7 && cell === "Utilities" ? (
+                    <span className="text-success">{cell}</span>
+                  ) : cellIndex === 7 && cell === "Fun" ? (
+                    <span className="text-success">{cell}</span>
+                  ) : (
+                    cell
+                  )}
+                  {/* {cell} */}
                 </td>
               ))}
             </tr>
