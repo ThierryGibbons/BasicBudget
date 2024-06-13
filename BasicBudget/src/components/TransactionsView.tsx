@@ -1,4 +1,4 @@
-import { ChangeEvent } from "react";
+import { ChangeEvent, useState } from "react";
 import { useTransactions } from "./CsvContext";
 import Papa from "papaparse";
 
@@ -6,6 +6,8 @@ const TransactionsView = () => {
   const { transactionData, setTransactionData } = useTransactions();
 
   const categories = ["Income", "Expense", "Transfer", "Other"];
+
+  const [selectedTransaction, setSelectedTransaction] = useState<string[]>();
 
   // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -89,7 +91,15 @@ const TransactionsView = () => {
         </thead>
         <tbody>
           {transactionData.map((row, rowIndex) => (
-            <tr key={rowIndex}>
+            <tr
+              key={rowIndex}
+              onClick={() => {
+                (
+                  document.getElementById("tempModal") as HTMLDialogElement
+                )?.showModal();
+                setSelectedTransaction(row);
+              }}
+            >
               {row.map((cell, cellIndex) => (
                 <td key={cellIndex}>
                   {cellIndex === 7 ? (
@@ -115,6 +125,51 @@ const TransactionsView = () => {
           ))}
         </tbody>
       </table>
+      <dialog id="tempModal" className="modal">
+        <div className="modal-box w-11/12 max-w-5xl">
+          <form method="dialog">
+            <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
+              ✕
+            </button>
+          </form>
+          <h3 className="font-bold text-lg">Edit Transaction</h3>
+          <div className="py-4">
+            {/* Transaction Info */}
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Unique Id</th>
+                  <th>Tran Type</th>
+                  <th>Cheque Number</th>
+                  <th>Payee</th>
+                  <th>Memo</th>
+                  <th>Amount</th>
+                  <th>Category</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  {selectedTransaction !== undefined ? (
+                    selectedTransaction.map((cell, index) => (
+                      <td key={index}>{cell}</td>
+                    ))
+                  ) : (
+                    <td colSpan={8}>No transaction selected</td>
+                  )}
+                </tr>
+              </tbody>
+            </table>
+            {/* {selectedTransaction?.map((cell, index) => (
+                  <span key={index}>
+                    <strong>{transactionData[0][index]}: </strong>
+                    {cell}
+                    <br />
+                  </span>
+                ))} */}
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 };
