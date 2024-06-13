@@ -7,7 +7,10 @@ const TransactionsView = () => {
 
   const categories = ["Income", "Expense", "Transfer", "Other"];
 
-  const [selectedTransaction, setSelectedTransaction] = useState<string[]>();
+  const [selectedTransaction, setSelectedTransaction] = useState<number>();
+
+  //   tags prop
+  const tags = ["Groceries", "Rent", "Utilities", "Other", "Fun"];
 
   // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,16 +21,23 @@ const TransactionsView = () => {
           const data = result.data as string[][];
           const transactionData = data.slice(6); // Skip the first 6 lines
 
+          // Remove Cheque Number column
+          const transactionDataWithoutChequeNumber = transactionData.map(
+            (row) => {
+              return row.slice(0, 3).concat(row.slice(4));
+            }
+          );
+
           // Remove empty lines
-          const nonEmptyData = transactionData.filter((row) =>
-            row.some((cell) => cell.trim() !== "")
+          const nonEmptyData = transactionDataWithoutChequeNumber.filter(
+            (row) => row.some((cell) => cell.trim() !== "")
           );
 
           // Add categories to transactionData
           const tempCategories = nonEmptyData.map((row) => {
-            const payee = row[4];
-            const memo = row[5];
-            const amount = parseFloat(row[6]);
+            const payee = row[3];
+            const memo = row[4];
+            const amount = parseFloat(row[5]);
             if (isNaN(amount)) {
               return "Other";
             } else if (
@@ -40,16 +50,32 @@ const TransactionsView = () => {
             }
             return amount > 0 ? "Income" : "Expense";
           });
-          console.log("categories", tempCategories);
 
           // Add categories to new end column of transactionData
-          const newTransactionData = nonEmptyData.map((row, index) => {
-            return [...row, tempCategories[index]];
+          const newTransactionDataWithCategories = nonEmptyData.map(
+            (row, index) => {
+              return [...row, tempCategories[index]];
+            }
+          );
+
+          // Add tags to transactionData
+          const tempTags = newTransactionDataWithCategories.map((row) => {
+            // const memo = row[4];
+            const payee = row[3];
+            if (payee.includes("LIQUOR")) {
+              return "Fun";
+            } else {
+              return "Other";
+            }
           });
 
-          setTransactionData(newTransactionData);
+          // Add tags to new end column of transactionData
+          const newTransactionDataWithTags =
+            newTransactionDataWithCategories.map((row, index) => {
+              return [...row, tempTags[index]];
+            });
 
-          console.log("newTransactionData", newTransactionData);
+          setTransactionData(newTransactionDataWithTags);
         },
       });
     }
@@ -62,6 +88,16 @@ const TransactionsView = () => {
   ) => {
     const newTransactionData = [...transactionData];
     newTransactionData[rowIndex][7] = event.target.value;
+    setTransactionData(newTransactionData);
+  };
+
+  //   Handle tag change
+  const handleTagChange = (
+    event: ChangeEvent<HTMLSelectElement>,
+    rowIndex: number
+  ) => {
+    const newTransactionData = [...transactionData];
+    newTransactionData[rowIndex][8] = event.target.value;
     setTransactionData(newTransactionData);
   };
 
@@ -82,11 +118,11 @@ const TransactionsView = () => {
             <th>Date</th>
             <th>Unique Id</th>
             <th>Tran Type</th>
-            <th>Cheque Number</th>
             <th>Payee</th>
             <th>Memo</th>
             <th>Amount</th>
             <th>Category</th>
+            <th>Tag</th>
           </tr>
         </thead>
         <tbody>
@@ -97,28 +133,13 @@ const TransactionsView = () => {
                 (
                   document.getElementById("tempModal") as HTMLDialogElement
                 )?.showModal();
-                setSelectedTransaction(row);
+                setSelectedTransaction(rowIndex);
               }}
             >
               {row.map((cell, cellIndex) => (
                 <td key={cellIndex}>
-                  {cellIndex === 7 ? (
-                    <select
-                      value={cell}
-                      className="select select-bordered"
-                      onChange={(event) =>
-                        handleCategoryChange(event, rowIndex)
-                      }
-                    >
-                      {categories.map((category, index) => (
-                        <option key={index} value={category}>
-                          {category}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    cell
-                  )}
+                  {/*  */}
+                  {cell}
                 </td>
               ))}
             </tr>
@@ -141,18 +162,50 @@ const TransactionsView = () => {
                   <th>Date</th>
                   <th>Unique Id</th>
                   <th>Tran Type</th>
-                  <th>Cheque Number</th>
                   <th>Payee</th>
                   <th>Memo</th>
                   <th>Amount</th>
                   <th>Category</th>
+                  <th>Tag</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
                   {selectedTransaction !== undefined ? (
-                    selectedTransaction.map((cell, index) => (
-                      <td key={index}>{cell}</td>
+                    transactionData[selectedTransaction].map((cell, index) => (
+                      <td key={index}>
+                        {index === 6 ? (
+                          <select
+                            value={cell}
+                            className="select select-bordered"
+                            onChange={(event) =>
+                              handleCategoryChange(event, selectedTransaction)
+                            }
+                          >
+                            {categories.map((category, index) => (
+                              <option key={index} value={category}>
+                                {category}
+                              </option>
+                            ))}
+                          </select>
+                        ) : index === 7 ? (
+                          <select
+                            value={cell}
+                            className="select select-bordered"
+                            onChange={(event) =>
+                              handleTagChange(event, selectedTransaction)
+                            }
+                          >
+                            {tags.map((tag, index) => (
+                              <option key={index} value={tag}>
+                                {tag}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          cell
+                        )}
+                      </td>
                     ))
                   ) : (
                     <td colSpan={8}>No transaction selected</td>
@@ -161,12 +214,12 @@ const TransactionsView = () => {
               </tbody>
             </table>
             {/* {selectedTransaction?.map((cell, index) => (
-                  <span key={index}>
-                    <strong>{transactionData[0][index]}: </strong>
-                    {cell}
-                    <br />
-                  </span>
-                ))} */}
+                                  <span key={index}>
+                                    <strong>{transactionData[0][index]}: </strong>
+                                    {cell}
+                                    <br />
+                                  </span>
+                                ))} */}
           </div>
         </div>
       </dialog>
