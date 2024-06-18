@@ -75,8 +75,8 @@ const TransactionsView = () => {
               if (keyWords[tag].some((word) => payee.includes(word))) {
                 return tag;
               }
-              return "Other";
             }
+            return "Other";
           });
 
           // Add tags to new end column of transactionData
@@ -98,7 +98,7 @@ const TransactionsView = () => {
     rowIndex: number
   ) => {
     const newTransactionData = [...transactionData];
-    newTransactionData[rowIndex][7] = event.target.value;
+    newTransactionData[rowIndex][6] = event.target.value;
     setTransactionData(newTransactionData);
   };
 
@@ -108,7 +108,7 @@ const TransactionsView = () => {
     rowIndex: number
   ) => {
     const newTransactionData = [...transactionData];
-    newTransactionData[rowIndex][8] = event.target.value;
+    newTransactionData[rowIndex][7] = event.target.value;
     setTransactionData(newTransactionData);
   };
 
