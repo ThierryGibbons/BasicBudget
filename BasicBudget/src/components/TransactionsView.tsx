@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useTransactions } from "./CsvContext";
 import Papa from "papaparse";
 
@@ -11,14 +11,15 @@ const TransactionsView = () => {
   const [selectedTransaction, setSelectedTransaction] = useState<number>();
 
   //   tags prop
-  const tags = ["Groceries", "Rent", "Utilities", "Other", "Fun"];
+  const tags = ["Groceries", "Rent", "Utilities", "Other", "Fun", "Pay"];
 
   // key words for tags to look for
-  const tempKeyWords: { [key: string]: string[] } = {
+  const defaultKeyWords: { [key: string]: string[] } = {
     Groceries: ["FRESHCHOICE", "WOOLWORTHS", "COUNTDOWN", "PAK'NSAVE"],
     Rent: ["Rent"],
     Utilities: ["ELECTRICITY", "WATER", "INTERNET", "PHONE"],
     Fun: ["LIQUOR", "THE OUTBACK HAMILTON", "BEER", "WINE", "SPIRITS"],
+    Pay: ["PAY", "SALARY", "WAGES"],
   };
 
   // Handle file upload
@@ -70,11 +71,16 @@ const TransactionsView = () => {
 
           // Add tags to transactionData
           const tempTags = newTransactionDataWithCategories.map((row) => {
-            console.log(tempKeyWords);
+            console.log(keyWords);
             const payee = row[3];
+            const memo = row[4];
             // check if payee contains key words
-            for (const tag in tempKeyWords) {
-              if (tempKeyWords[tag].some((word) => payee.includes(word))) {
+            for (const tag in keyWords) {
+              if (
+                keyWords[tag].some(
+                  (word) => payee.includes(word) || memo.includes(word)
+                )
+              ) {
                 return tag;
               }
             }
@@ -115,9 +121,16 @@ const TransactionsView = () => {
   };
 
   const loadChanges = () => {
-    setKeyWords(tempKeyWords);
+    setKeyWords(defaultKeyWords);
     console.log(keyWords);
   };
+
+  // Show text when page is loaded
+  useEffect(() => {
+    console.log("Page loaded");
+    loadChanges();
+    // Add your code here to display the text or perform any other actions
+  }, []);
 
   return (
     <div className="flex flex-col items-center p-4">
@@ -246,13 +259,6 @@ const TransactionsView = () => {
                 </tr>
               </tbody>
             </table>
-            {/* {selectedTransaction?.map((cell, index) => (
-                                  <span key={index}>
-                                    <strong>{transactionData[0][index]}: </strong>
-                                    {cell}
-                                    <br />
-                                  </span>
-                                ))} */}
           </div>
         </div>
       </dialog>

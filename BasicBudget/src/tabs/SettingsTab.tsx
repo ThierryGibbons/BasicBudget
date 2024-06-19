@@ -4,9 +4,6 @@ const SettingsTab = () => {
   const { keyWords, setKeyWords } = useTransactions();
   return (
     <div>
-      <h1 className="text-xl font-bold">Settings</h1>
-      <p>Seperate each word by ,</p>
-
       {/* cards for each tag */}
       <div className="grid grid-cols-2 gap-4">
         {/* map each key word */}
@@ -14,14 +11,37 @@ const SettingsTab = () => {
           <div key={key} className="stats shadow bg-base-200 m-1 mt-5 w-11/12">
             <div className="stat">
               <div className="stat-value pb-5">{key}</div>
-              <textarea
-                className="textarea textarea-bordered"
-                placeholder="Memo filter"
-                value={keyWords[key]}
-                onChange={(e) => {
-                  setKeyWords({ ...keyWords, [key]: [e.target.value] });
+              {/* display each word as a button */}
+              <div className="flex flex-row flex-wrap justify-center">
+                {keyWords[key].map((word, index) => (
+                  <button
+                    key={index}
+                    className="btn btn-sm btn-outline btn-ghost m-1 hover:btn-error"
+                    onClick={() => {
+                      setKeyWords({
+                        ...keyWords,
+                        [key]: keyWords[key].filter((_, i) => i !== index),
+                      });
+                    }}
+                  >
+                    {word}
+                  </button>
+                ))}
+              </div>
+              {/* add button to type new word */}
+              <input
+                className="input input-bordered mt-5"
+                placeholder="Add word"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setKeyWords({
+                      ...keyWords,
+                      [key]: [...keyWords[key], e.currentTarget.value],
+                    });
+                    e.currentTarget.value = "";
+                  }
                 }}
-              ></textarea>
+              />{" "}
             </div>
           </div>
         ))}
