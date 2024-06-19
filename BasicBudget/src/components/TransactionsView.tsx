@@ -4,6 +4,7 @@ import Papa from "papaparse";
 
 const TransactionsView = () => {
   const { transactionData, setTransactionData } = useTransactions();
+  const { keyWords, setKeyWords } = useTransactions();
 
   const categories = ["Income", "Expense", "Transfer", "Other"];
 
@@ -13,7 +14,7 @@ const TransactionsView = () => {
   const tags = ["Groceries", "Rent", "Utilities", "Other", "Fun"];
 
   // key words for tags to look for
-  const keyWords: { [key: string]: string[] } = {
+  const tempKeyWords: { [key: string]: string[] } = {
     Groceries: ["FRESHCHOICE", "WOOLWORTHS", "COUNTDOWN", "PAK'NSAVE"],
     Rent: ["Rent"],
     Utilities: ["ELECTRICITY", "WATER", "INTERNET", "PHONE"],
@@ -22,6 +23,7 @@ const TransactionsView = () => {
 
   // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    loadChanges();
     const file = event.target.files?.[0];
     if (file) {
       Papa.parse(file, {
@@ -68,11 +70,11 @@ const TransactionsView = () => {
 
           // Add tags to transactionData
           const tempTags = newTransactionDataWithCategories.map((row) => {
-            // const memo = row[4];
+            console.log(tempKeyWords);
             const payee = row[3];
             // check if payee contains key words
-            for (const tag in keyWords) {
-              if (keyWords[tag].some((word) => payee.includes(word))) {
+            for (const tag in tempKeyWords) {
+              if (tempKeyWords[tag].some((word) => payee.includes(word))) {
                 return tag;
               }
             }
@@ -110,6 +112,11 @@ const TransactionsView = () => {
     const newTransactionData = [...transactionData];
     newTransactionData[rowIndex][7] = event.target.value;
     setTransactionData(newTransactionData);
+  };
+
+  const loadChanges = () => {
+    setKeyWords(tempKeyWords);
+    console.log(keyWords);
   };
 
   return (

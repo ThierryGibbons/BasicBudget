@@ -4,6 +4,7 @@ import "./App.css";
 import TimelineTab from "./tabs/TimelineTab";
 import BudgetTab from "./tabs/BudgetTab";
 import TransactionsTab from "./tabs/TransactionsTab";
+import SettingsTab from "./tabs/SettingsTab";
 
 // Components
 import Navbar from "./components/Navbar";
@@ -57,6 +58,20 @@ function App() {
           className="tab-content bg-base-100 border-base-300 rounded-box p-6"
         >
           <TransactionsTab />
+        </div>
+
+        <input
+          type="radio"
+          name="my_tabs_2"
+          role="tab"
+          className="tab"
+          aria-label="Settings"
+        />
+        <div
+          role="tabpanel"
+          className="tab-content bg-base-100 border-base-300 rounded-box p-6"
+        >
+          <SettingsTab />
         </div>
       </div>
     </div>
