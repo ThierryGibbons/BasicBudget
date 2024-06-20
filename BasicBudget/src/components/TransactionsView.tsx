@@ -182,10 +182,11 @@ const TransactionsView = () => {
                     <span className="text-success">{cell}</span>
                   ) : cellIndex === 7 && cell === "Fun" ? (
                     <span className="text-success">{cell}</span>
+                  ) : cellIndex === 7 && cell === "Pay" ? (
+                    <span className="text-success">{cell}</span>
                   ) : (
                     cell
                   )}
-                  {/* {cell} */}
                 </td>
               ))}
             </tr>
