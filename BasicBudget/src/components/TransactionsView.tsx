@@ -10,6 +10,10 @@ const TransactionsView = () => {
 
   const [selectedTransaction, setSelectedTransaction] = useState<number>();
 
+  const [filterTag, setFilterTag] = useState<string>("");
+
+  const [selectedTransactionId, setSelectedTransactionId] = useState<string>();
+
   //   tags prop
   const tags = ["Groceries", "Rent", "Utilities", "Other", "Fun", "Pay"];
 
@@ -71,7 +75,7 @@ const TransactionsView = () => {
 
           // Add tags to transactionData
           const tempTags = newTransactionDataWithCategories.map((row) => {
-            console.log(keyWords);
+            // console.log(keyWords);
             const payee = row[3];
             const memo = row[4];
             // check if payee contains key words
@@ -103,26 +107,34 @@ const TransactionsView = () => {
   // Handle category change
   const handleCategoryChange = (
     event: ChangeEvent<HTMLSelectElement>,
-    rowIndex: number
+    transactionId: string
   ) => {
-    const newTransactionData = [...transactionData];
-    newTransactionData[rowIndex][6] = event.target.value;
+    const newTransactionData = transactionData.map((row) => {
+      if (row[1] === transactionId) {
+        row[6] = event.target.value;
+      }
+      return row;
+    });
     setTransactionData(newTransactionData);
   };
 
   //   Handle tag change
   const handleTagChange = (
     event: ChangeEvent<HTMLSelectElement>,
-    rowIndex: number
+    transactionId: string
   ) => {
-    const newTransactionData = [...transactionData];
-    newTransactionData[rowIndex][7] = event.target.value;
+    const newTransactionData = transactionData.map((row) => {
+      if (row[1] === transactionId) {
+        row[7] = event.target.value;
+      }
+      return row;
+    });
     setTransactionData(newTransactionData);
   };
 
   const loadChanges = () => {
     setKeyWords(defaultKeyWords);
-    console.log(keyWords);
+    // console.log(keyWords);
   };
 
   // Show text when page is loaded
@@ -142,6 +154,19 @@ const TransactionsView = () => {
         className="file-input file-input-bordered w-full max-w-xs"
       />
 
+      {/* Choose tag to filter by */}
+      <select
+        className="select select-bordered mt-5"
+        onChange={(event) => setFilterTag(event.target.value)}
+      >
+        <option value="">No Filter</option>
+        {tags.map((tag, index) => (
+          <option key={index} value={tag}>
+            {tag}
+          </option>
+        ))}
+      </select>
+
       {/* Display transaction data */}
       <table className="table w-full mt-4">
         <thead>
@@ -157,42 +182,51 @@ const TransactionsView = () => {
           </tr>
         </thead>
         <tbody>
-          {transactionData.map((row, rowIndex) => (
-            <tr
-              key={rowIndex}
-              onClick={() => {
-                (
-                  document.getElementById("tempModal") as HTMLDialogElement
-                )?.showModal();
-                setSelectedTransaction(rowIndex);
-              }}
-            >
-              {row.map((cell, cellIndex) => (
-                <td key={cellIndex}>
-                  {/* if cellIndex = 7 and cell = "other" then highlight the text */}
-                  {cellIndex === 7 && cell === "Other" ? (
-                    <span className="text-error">{cell}</span>
-                  ) : cellIndex === 7 && cell === "Other" ? (
-                    <span className="text-success">{cell}</span>
-                  ) : cellIndex === 7 && cell === "Groceries" ? (
-                    <span className="text-success">{cell}</span>
-                  ) : cellIndex === 7 && cell === "Rent" ? (
-                    <span className="text-success">{cell}</span>
-                  ) : cellIndex === 7 && cell === "Utilities" ? (
-                    <span className="text-success">{cell}</span>
-                  ) : cellIndex === 7 && cell === "Fun" ? (
-                    <span className="text-success">{cell}</span>
-                  ) : cellIndex === 7 && cell === "Pay" ? (
-                    <span className="text-success">{cell}</span>
-                  ) : (
-                    cell
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
+          {transactionData
+            .filter((row) => {
+              const tag = row[7];
+              // Add your filter condition here
+              return tag === filterTag || filterTag === "";
+            })
+            .map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                onClick={() => {
+                  // Add your click event handler here
+                  (
+                    document.getElementById("tempModal") as HTMLDialogElement
+                  )?.showModal();
+                  setSelectedTransaction(rowIndex);
+                  setSelectedTransactionId(row[1]);
+                }}
+              >
+                {row.map((cell, cellIndex) => (
+                  <td key={cellIndex}>
+                    {/* if cellIndex = 7 and cell = "other" then highlight the text */}
+                    {cellIndex === 7 && cell === "Other" ? (
+                      <span className="text-error">{cell}</span>
+                    ) : cellIndex === 7 && cell === "Other" ? (
+                      <span className="text-success">{cell}</span>
+                    ) : cellIndex === 7 && cell === "Groceries" ? (
+                      <span className="text-success">{cell}</span>
+                    ) : cellIndex === 7 && cell === "Rent" ? (
+                      <span className="text-success">{cell}</span>
+                    ) : cellIndex === 7 && cell === "Utilities" ? (
+                      <span className="text-success">{cell}</span>
+                    ) : cellIndex === 7 && cell === "Fun" ? (
+                      <span className="text-success">{cell}</span>
+                    ) : cellIndex === 7 && cell === "Pay" ? (
+                      <span className="text-success">{cell}</span>
+                    ) : (
+                      cell
+                    )}
+                  </td>
+                ))}
+              </tr>
+            ))}
         </tbody>
       </table>
+      {/* Transaction Edit */}
       <dialog id="tempModal" className="modal">
         <div className="modal-box w-11/12 max-w-5xl">
           <form method="dialog">
@@ -219,47 +253,79 @@ const TransactionsView = () => {
               <tbody>
                 <tr>
                   {selectedTransaction !== undefined ? (
-                    transactionData[selectedTransaction].map((cell, index) => (
-                      <td key={index}>
-                        {index === 6 ? (
-                          <select
-                            value={cell}
-                            className="select select-bordered"
-                            onChange={(event) =>
-                              handleCategoryChange(event, selectedTransaction)
-                            }
-                          >
-                            {categories.map((category, index) => (
-                              <option key={index} value={category}>
-                                {category}
-                              </option>
-                            ))}
-                          </select>
-                        ) : index === 7 ? (
-                          <select
-                            value={cell}
-                            className="select select-bordered"
-                            onChange={(event) =>
-                              handleTagChange(event, selectedTransaction)
-                            }
-                          >
-                            {tags.map((tag, index) => (
-                              <option key={index} value={tag}>
-                                {tag}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          cell
-                        )}
-                      </td>
-                    ))
+                    transactionData
+                      .find((row) => row[1] === selectedTransactionId)
+                      ?.map((cell, index) => (
+                        <td key={index}>
+                          {index === 6 ? (
+                            <select
+                              value={cell}
+                              className="select select-bordered"
+                              onChange={(event) =>
+                                handleCategoryChange(event, selectedTransaction)
+                              }
+                            >
+                              {categories.map((category, index) => (
+                                <option key={index} value={category}>
+                                  {category}
+                                </option>
+                              ))}
+                            </select>
+                          ) : index === 7 ? (
+                            <select
+                              value={cell}
+                              className="select select-bordered"
+                              onChange={(event) =>
+                                handleTagChange(event, selectedTransactionId)
+                              }
+                            >
+                              {tags.map((tag, index) => (
+                                <option key={index} value={tag}>
+                                  {tag}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            cell
+                          )}
+                        </td>
+                      ))
                   ) : (
                     <td colSpan={8}>No transaction selected</td>
                   )}
                 </tr>
               </tbody>
             </table>
+            {/* add current payee to keywords */}
+            <button
+              className="btn btn-sm btn-outline btn-primary m-1"
+              onClick={() => {
+                if (selectedTransactionId !== undefined) {
+                  const selectedTransaction = transactionData.find(
+                    (row) => row[1] === selectedTransactionId
+                  );
+                  if (selectedTransaction) {
+                    const payee = selectedTransaction[3];
+                    const tag = selectedTransaction[7];
+                    setKeyWords({
+                      ...keyWords,
+                      [tag]: [...keyWords[tag], payee],
+                    });
+
+                    // Set all transactions with the same payee to the same tag
+                    const newTransactionData = transactionData.map((row) => {
+                      if (row[3] === payee) {
+                        row[7] = tag;
+                      }
+                      return row;
+                    });
+                    setTransactionData(newTransactionData);
+                  }
+                }
+              }}
+            >
+              Set tag to all transactions with this payee
+            </button>
           </div>
         </div>
       </dialog>
